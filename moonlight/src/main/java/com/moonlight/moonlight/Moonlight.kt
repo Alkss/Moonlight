@@ -40,7 +40,6 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.RoundRect
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathFillType
@@ -108,6 +107,8 @@ fun Moonlight(
     state: MoonlightState,
     steps: List<MoonlightStep>,
     overlayColor: Color = Color.Black.copy(alpha = 0.7f),
+    skipText: String = "Skip",
+    absorbClicks: Boolean = true,
     content: @Composable BoxScope.() -> Unit
 ) {
     Box(modifier = modifier.fillMaxSize()) {
@@ -122,6 +123,7 @@ fun Moonlight(
             MoonlightOverlay(
                 bounds = currentTargetBounds,
                 overlayColor = overlayColor,
+                absorbInput = absorbClicks,
                 onDismiss = { state.dismiss() }
             )
 
@@ -148,7 +150,8 @@ fun Moonlight(
                         totalSteps = steps.size,
                         onNext = { state.nextStep(steps.size) },
                         onPrev = { state.previousStep() },
-                        onSkip = { state.skip() }
+                        onSkip = { state.skip() },
+                        skipText = skipText
                     )
                 }
             }
@@ -160,6 +163,7 @@ fun Moonlight(
 private fun MoonlightOverlay(
     bounds: Rect?,
     overlayColor: Color,
+    absorbInput: Boolean,
     onDismiss: () -> Unit
 ) {
     Canvas(
@@ -168,7 +172,11 @@ private fun MoonlightOverlay(
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null
-            ) { /* Absorb clicks */ }
+            ) {
+                if (!absorbInput) {
+                    onDismiss()
+                }
+            }
     ) {
         val path = Path().apply {
             fillType = PathFillType.EvenOdd
@@ -201,7 +209,8 @@ private fun MoonlightCard(
     totalSteps: Int,
     onNext: () -> Unit,
     onPrev: () -> Unit,
-    onSkip: () -> Unit
+    onSkip: () -> Unit,
+    skipText: String,
 ) {
     Card(
         modifier = modifier
@@ -226,7 +235,7 @@ private fun MoonlightCard(
                     modifier = Modifier.weight(1f)
                 )
                 TextButton(onClick = onSkip) {
-                    Text("Skip")
+                    Text(skipText)
                 }
             }
 
