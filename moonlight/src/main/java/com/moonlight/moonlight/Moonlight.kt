@@ -108,6 +108,7 @@ fun Moonlight(
     steps: List<MoonlightStep>,
     overlayColor: Color = Color.Black.copy(alpha = 0.7f),
     skipText: String = "Skip",
+    endText: String = "Finish",
     absorbClicks: Boolean = true,
     content: @Composable BoxScope.() -> Unit
 ) {
@@ -151,7 +152,8 @@ fun Moonlight(
                         onNext = { state.nextStep(steps.size) },
                         onPrev = { state.previousStep() },
                         onSkip = { state.skip() },
-                        skipText = skipText
+                        skipText = skipText,
+                        endText = endText
                     )
                 }
             }
@@ -211,6 +213,7 @@ private fun MoonlightCard(
     onPrev: () -> Unit,
     onSkip: () -> Unit,
     skipText: String,
+    endText: String,
 ) {
     Card(
         modifier = modifier
@@ -273,7 +276,7 @@ private fun MoonlightCard(
 
                 Button(onClick = onNext) {
                     if (stepIndex == totalSteps - 1) {
-                        Text("Finish")
+                        Text(endText)
                     } else {
                         Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Next")
                     }
