@@ -3,8 +3,8 @@
 Moonlight is a lightweight, modern Jetpack Compose library for creating beautiful, guided app walkthroughs and feature showcases.
 
 <div align="center">
-  <img src="art/screenshot1.png" width="300" alt="Moonlight Screenshot 1" />
-  <img src="art/screenshot2.png" width="300" alt="Moonlight Screenshot 2" />
+  <img src="app/src/main/java/com/moonlight/myapplication/art/screenshot1.png" width="300" alt="Moonlight Screenshot 1" />
+  <img src="app/src/main/java/com/moonlight/myapplication/art/screenshot2.png" width="300" alt="Moonlight Screenshot 2" />
 </div>
 
 ## Features
