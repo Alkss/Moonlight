@@ -24,16 +24,10 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
@@ -43,63 +37,13 @@ import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathFillType
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.toSize
 
 data class MoonlightStep(
     val id: String,
+    val title: String = "Walkthrough",
     val text: String,
-    val title: String = "Walkthrough"
 )
-
-class MoonlightState(initialDecorated: Boolean = false) {
-    var isVisible by mutableStateOf(initialDecorated)
-    var currentStepIndex by mutableIntStateOf(0)
-
-    // Stores the bounds of registered targets relative to the root
-    internal val targetBounds = mutableStateMapOf<String, Rect>()
-
-    fun nextStep(maxSteps: Int) {
-        if (currentStepIndex < maxSteps - 1) {
-            currentStepIndex++
-        } else {
-            dismiss()
-        }
-    }
-
-    fun previousStep() {
-        if (currentStepIndex > 0) {
-            currentStepIndex--
-        }
-    }
-
-    fun dismiss() {
-        isVisible = false
-        currentStepIndex = 0
-    }
-
-    fun skip() {
-        dismiss()
-    }
-}
-
-@Composable
-fun rememberMoonlightState(initialDecorated: Boolean = false): MoonlightState {
-    return remember { MoonlightState(initialDecorated) }
-}
-
-fun Modifier.moonlightTarget(
-    state: MoonlightState,
-    id: String
-): Modifier = this.onGloballyPositioned { coordinates ->
-    if (state.isVisible) {
-        val position = coordinates.positionInRoot()
-        val size = coordinates.size.toSize()
-        state.targetBounds[id] = Rect(position, size)
-    }
-}
 
 @Composable
 fun Moonlight(
@@ -209,6 +153,8 @@ private fun MoonlightCard(
     step: MoonlightStep,
     stepIndex: Int,
     totalSteps: Int,
+    colors: MoonlightColors = MoonlightColors(),
+    typography: MoonlightTypography = MoonlightTypography(),
     onNext: () -> Unit,
     onPrev: () -> Unit,
     onSkip: () -> Unit,
@@ -220,7 +166,7 @@ private fun MoonlightCard(
             .fillMaxWidth()
             .padding(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = colors.containerColor
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
         shape = RoundedCornerShape(12.dp)
@@ -234,11 +180,12 @@ private fun MoonlightCard(
             ) {
                 Text(
                     text = step.title,
-                    style = MaterialTheme.typography.titleMedium,
+                    style = typography.titleStyle,
+                    color = colors.titleContentColor,
                     modifier = Modifier.weight(1f)
                 )
                 TextButton(onClick = onSkip) {
-                    Text(skipText)
+                    Text(skipText, color = colors.actionButtonContainerColor)
                 }
             }
 
@@ -246,7 +193,8 @@ private fun MoonlightCard(
 
             Text(
                 text = step.text,
-                style = MaterialTheme.typography.bodyMedium
+                style = typography.textStyle,
+                color = colors.textContentColor
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -257,7 +205,13 @@ private fun MoonlightCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 if (stepIndex > 0) {
-                    Button(onClick = onPrev) {
+                    Button(
+                        onClick = onPrev,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = colors.actionButtonContainerColor,
+                            contentColor = colors.actionButtonContentColor
+                        )
+                    ) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 } else {
@@ -269,12 +223,19 @@ private fun MoonlightCard(
                 // Indicators 1/3
                 Text(
                     text = "${stepIndex + 1} / $totalSteps",
-                    style = MaterialTheme.typography.labelMedium
+                    style = typography.indicatorStyle,
+                    color = colors.indicatorColor
                 )
 
                 Spacer(modifier = Modifier.weight(1f))
 
-                Button(onClick = onNext) {
+                Button(
+                    onClick = onNext,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = colors.actionButtonContainerColor,
+                        contentColor = colors.actionButtonContentColor
+                    )
+                ) {
                     if (stepIndex == totalSteps - 1) {
                         Text(endText)
                     } else {
