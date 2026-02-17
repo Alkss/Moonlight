@@ -36,6 +36,11 @@ fun MoonlightShowcase() {
             text = "You can highlight Boxes, Rows, Columns, or any custom component easily."
         ),
         MoonlightStep(
+            ids = listOf("box", "secondary_box"),
+            title = "Multiple Elements",
+            text = "You can also highlight multiple elements at once! Both boxes are highlighted together."
+        ),
+        MoonlightStep(
             id = "start_button",
             title = "User Interaction",
             text = "Guide users to actionable buttons to drive engagement."
@@ -71,6 +76,18 @@ fun MoonlightShowcase() {
                 contentAlignment = Alignment.Center
             ) {
                 Text("Feature Area", color = MaterialTheme.colorScheme.onPrimaryContainer)
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Box(
+                modifier = Modifier
+                    .size(120.dp)
+                    .background(MaterialTheme.colorScheme.secondaryContainer, shape = MaterialTheme.shapes.medium)
+                    .moonlightTarget(moonlightState, "secondary_box"),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("Secondary", color = MaterialTheme.colorScheme.onSecondaryContainer)
             }
 
             Spacer(modifier = Modifier.weight(1f))

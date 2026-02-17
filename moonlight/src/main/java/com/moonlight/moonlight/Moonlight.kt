@@ -37,13 +37,20 @@ import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathFillType
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.dp
 
 data class MoonlightStep(
-    val id: String,
+    val ids: List<String>,
     val title: String = "Walkthrough",
     val text: String,
-)
+) {
+    constructor(id: String, title: String = "Walkthrough", text: String) : this(
+        listOf(id),
+        title,
+        text
+    )
+}
 
 @Composable
 fun Moonlight(
@@ -64,25 +71,35 @@ fun Moonlight(
         // Overlay and Walkthrough
         if (state.isVisible && steps.isNotEmpty()) {
             val currentStep = steps.getOrNull(state.currentStepIndex)
-            val currentTargetBounds = currentStep?.let { state.targetBounds[it.id] }
+            val currentTargetBounds = currentStep?.let { step ->
+                step.ids.mapNotNull { id -> state.targetBounds[id] }
+            } ?: emptyList()
 
             MoonlightOverlay(
-                bounds = currentTargetBounds,
+                boundsList = currentTargetBounds,
                 overlayColor = colors.overlayColor,
                 absorbInput = absorbClicks,
                 onDismiss = { state.dismiss() }
             )
 
-            if (currentStep != null && currentTargetBounds != null) {
+            if (currentStep != null && currentTargetBounds.isNotEmpty()) {
                 // Determine if we should show the card at the top or bottom
-                // If the target is in the bottom half of the screen, show card at top.
-                // Otherwise show at bottom.
-                val screenHeight =
-                    androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp.dp
-                val screenHeightPx =
-                    with(androidx.compose.ui.platform.LocalDensity.current) { screenHeight.toPx() }
+                // Calculate the combined bounding box of all targets
+                val combinedBounds = Rect(
+                    left = currentTargetBounds.minOf { it.left },
+                    top = currentTargetBounds.minOf { it.top },
+                    right = currentTargetBounds.maxOf { it.right },
+                    bottom = currentTargetBounds.maxOf { it.bottom }
+                )
 
-                val isTargetBottom = currentTargetBounds.center.y > screenHeightPx / 2
+                // containerSize.height is already in pixels
+                val screenHeightPx = LocalWindowInfo.current.containerSize.height.toFloat()
+
+                // Determine best position for the card based on available space
+                // If targets are in the bottom half, show card at top, otherwise show at bottom
+                val spaceAbove = combinedBounds.top
+                val spaceBelow = screenHeightPx - combinedBounds.bottom
+                val isTargetBottom = spaceBelow < spaceAbove
 
                 Box(
                     modifier = Modifier.fillMaxSize()
@@ -110,7 +127,7 @@ fun Moonlight(
 
 @Composable
 private fun MoonlightOverlay(
-    bounds: Rect?,
+    boundsList: List<Rect>,
     overlayColor: Color,
     absorbInput: Boolean,
     onDismiss: () -> Unit
@@ -131,7 +148,7 @@ private fun MoonlightOverlay(
             fillType = PathFillType.EvenOdd
             addRect(Rect(Offset.Zero, size))
 
-            if (bounds != null) {
+            for (bounds in boundsList) {
                 val padding = 8.dp.toPx()
                 val cornerRadius = 12.dp.toPx()
 
